@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DFA Auto Simulator</title>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background: #eef2f7;
+            color: #1f2937;
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            text-align: center;
+            font-size: 2.2rem;
+            color: #2563eb;
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 12px rgba(37, 99, 235, 0.2);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-bottom: 35px;
+            letter-spacing: 2px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: #ffffff;
+            border: 1px solid #dbe3ec;
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 22px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+        }
+
+        .card h3 {
+            color: #2563eb;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 3px;
+            margin-bottom: 18px;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 10px;
+        }
+
+        label {
+            display: block;
+            color: #4b5563;
+            font-size: 0.82rem;
+            letter-spacing: 1px;
+            margin-bottom: 7px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 13px 16px;
+            color: #111827;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1rem;
+            margin-bottom: 16px;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        input[type="text"]:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 10px rgba(37,99,235,0.15);
+        }
+
+        .hint {
+            font-size: 0.76rem;
+            color: #6b7280;
+            margin-top: -10px;
+            margin-bottom: 18px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #2563eb;
+            border: none;
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 3px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        .result-card {
+            text-align: center;
+            padding: 30px;
+        }
+
+        .accepted {
+            color: #16a34a;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            letter-spacing: 6px;
+        }
+
+        .rejected {
+            color: #dc2626;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            letter-spacing: 6px;
+        }
+
+        .error {
+            color: #d97706;
+            font-size: 1rem;
+            letter-spacing: 2px;
+        }
+
+        .trace-box {
+            background: #f8fafc;
+            border: 1px solid #dbe3ec;
+            border-radius: 8px;
+            padding: 16px;
+            color: #2563eb;
+            font-size: 0.9rem;
+            line-height: 2;
+        }
+
+        .dfa-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            font-size: 0.85rem;
+        }
+
+        .dfa-info div {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 12px 14px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .dfa-info span.lbl {
+            color: #6b7280;
+            display: block;
+            font-size: 0.75rem;
+            margin-bottom: 5px;
+        }
+
+        .dfa-info span.val {
+            color: #111827;
+            word-break: break-all;
+        }
+
+        canvas {
+            width: 100%;
+            background: #ffffff;
+            border: 1px solid #dbe3ec;
+            border-radius: 8px;
+            display: block;
+        }
+
+        .legend {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 12px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>⬡ DFA AUTO SIMULATOR</h1>
+    <p class="subtitle">ENTER A STRING — DFA BUILDS ITSELF</p>
+
+    <form method="POST">
+
+        <div class="card">
+
+            <h3>▸ TARGET STRING</h3>
+
+            <label>STRING TO BUILD DFA FOR</label>
+
+            <input type="text"
+                   name="input_string"
+                   value="{{ input_string }}"
+                   placeholder="e.g. ab1c or hello2"
+                   autocomplete="off">
+
+            <p class="hint">
+                Only letters (a–z, A–Z) and digits (0–9) allowed
+            </p>
+
+            <label>TEST STRING (optional — leave blank to test same string)</label>
+
+            <input type="text"
+                   name="test_string"
+                   value="{{ test_string }}"
+                   placeholder="e.g. xyz or ab1c"
+                   autocomplete="off">
+
+            <p class="hint">
+                Try another string to see ACCEPTED or REJECTED
+            </p>
+
+            <button type="submit">
+                ▶ RUN SIMULATION
+            </button>
+
+        </div>
+
+    </form>
+
+    {% if result %}
+
+    <div class="card result-card">
+
+        {% if result == "ACCEPTED" %}
+            <div class="accepted">✔ ACCEPTED</div>
+
+        {% elif result == "REJECTED" %}
+            <div class="rejected">✘ REJECTED</div>
+
+        {% else %}
+            <div class="error">⚠ {{ result }}</div>
+
+        {% endif %}
+
+    </div>
+
+    {% if dfa_info %}
+
+    <div class="card">
+
+        <h3>▸ AUTO-GENERATED DFA</h3>
+
+        <div class="dfa-info">
+
+            <div>
+                <span class="lbl">TARGET STRING</span>
+                <span class="val">{{ dfa_info.target }}</span>
+            </div>
+
+            <div>
+                <span class="lbl">ALPHABET (Σ)</span>
+                <span class="val">{ {{ dfa_info.alphabet }} }</span>
+            </div>
+
+            <div>
+                <span class="lbl">STATES (Q)</span>
+                <span class="val">{ {{ dfa_info.states }} }</span>
+            </div>
+
+            <div>
+                <span class="lbl">START STATE</span>
+                <span class="val">{{ dfa_info.start }}</span>
+            </div>
+
+            <div style="grid-column: span 2;">
+                <span class="lbl">ACCEPTING STATE (F)</span>
+                <span class="val">{ {{ dfa_info.finals }} }</span>
+            </div>
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+    {% if trace %}
+
+    <div class="card">
+
+        <h3>▸ SIMULATION TRACE</h3>
+
+        <div class="trace-box">
+
+            {% for t in trace %}
+                <div>{{ t }}</div>
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+    {% if graph %}
+
+    <div class="card">
+
+        <h3>▸ DFA GRAPH</h3>
+
+        <canvas id="dfaCanvas"></canvas>
+
+        <div class="legend">
+            🟢 Green = accepting state |
+            🔵 Blue = start state |
+            🔴 Red = dead state |
+            🟠 Orange = active path
+        </div>
+
+    </div>
+
+    <script>
+
+    const graphData = {{ graph | safe }};
+
+    const canvas = document.getElementById("dfaCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const nodes = graphData.nodes;
+    const edges = graphData.edges;
+
+    const mainNodes = nodes.filter(n => !n.dead);
+    const deadNode  = nodes.find(n => n.dead);
+
+    const W = 900;
+    const H = 280;
+
+    canvas.width = W;
+    canvas.height = H;
+
+    const positions = {};
+
+    const spacing = Math.min(130, (W - 100) / (mainNodes.length));
+
+    mainNodes.forEach((node, i) => {
+        positions[node.id] = {
+            x: 60 + i * spacing,
+            y: 130
+        };
+    });
+
+    if (deadNode) {
+        positions[deadNode.id] = {
+            x: W / 2,
+            y: 230
+        };
+    }
+
+    function drawArrow(x1, y1, x2, y2, color, label, curved, selfLoop, nodeId) {
+
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = color === "#ff6600" ? 2.5 : 1.5;
+        ctx.font = "12px Courier New";
+
+        const r = 26;
+
+        if (selfLoop) {
+
+            const cx = positions[nodeId].x;
+            const cy = positions[nodeId].y;
+
+            ctx.beginPath();
+            ctx.arc(cx, cy - r - 18, 18, 0.3, Math.PI * 2 - 0.3);
+            ctx.stroke();
+
+            ctx.fillText(label, cx - 8, cy - r - 38);
+
+            return;
+        }
+
+        let cpx = (x1 + x2) / 2;
+        let cpy = (y1 + y2) / 2;
+
+        if (curved) cpy -= 50;
+
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        const ux = dx / dist;
+        const uy = dy / dist;
+
+        const sx = x1 + ux * r;
+        const sy = y1 + uy * r;
+
+        const ex = x2 - ux * r;
+        const ey = y2 - uy * r;
+
+        ctx.beginPath();
+
+        if (curved) {
+            ctx.moveTo(sx, sy);
+            ctx.quadraticCurveTo(cpx, cpy, ex, ey);
+        }
+        else {
+            ctx.moveTo(sx, sy);
+            ctx.lineTo(ex, ey);
+        }
+
+        ctx.stroke();
+
+        const angle = Math.atan2(ey - cpy, ex - cpx);
+
+        ctx.beginPath();
+
+        ctx.moveTo(ex, ey);
+
+        ctx.lineTo(
+            ex - 10 * Math.cos(angle - 0.4),
+            ey - 10 * Math.sin(angle - 0.4)
+        );
+
+        ctx.lineTo(
+            ex - 10 * Math.cos(angle + 0.4),
+            ey - 10 * Math.sin(angle + 0.4)
+        );
+
+        ctx.closePath();
+        ctx.fill();
+
+        if (curved) {
+            ctx.fillText(label, cpx - 8, cpy - 8);
+        }
+        else {
+            ctx.fillText(label,
+                (sx + ex) / 2 - 8,
+                (sy + ey) / 2 - 8
+            );
+        }
+    }
+
+    function draw() {
+
+        ctx.clearRect(0, 0, W, H);
+
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, W, H);
+
+        const startPos = positions[nodes.find(n => n.start).id];
+
+        ctx.strokeStyle = "#333";
+
+        ctx.beginPath();
+        ctx.moveTo(startPos.x - 50, startPos.y);
+        ctx.lineTo(startPos.x - 27, startPos.y);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(startPos.x - 26, startPos.y);
+        ctx.lineTo(startPos.x - 36, startPos.y - 5);
+        ctx.lineTo(startPos.x - 36, startPos.y + 5);
+        ctx.closePath();
+        ctx.fill();
+
+        const edgePairs = {};
+
+        edges.forEach(e => {
+
+            const key = `${e.from}->${e.to}`;
+            const rkey = `${e.to}->${e.from}`;
+
+            const color = e.active ? "#ff6600" : "#555555";
+
+            const p1 = positions[e.from];
+            const p2 = positions[e.to];
+
+            if (!p1 || !p2) return;
+
+            const isSelf = e.from === e.to;
+            const isCurved = !!edgePairs[rkey];
+
+            edgePairs[key] = true;
+
+            drawArrow(
+                p1.x,
+                p1.y,
+                p2.x,
+                p2.y,
+                color,
+                e.label,
+                isCurved,
+                isSelf,
+                e.from
+            );
+        });
+
+        nodes.forEach(node => {
+
+            const pos = positions[node.id];
+
+            if (!pos) return;
+
+            const r = 26;
+
+            ctx.beginPath();
+            ctx.arc(pos.x, pos.y, r, 0, Math.PI * 2);
+
+            if (node.dead) {
+
+                ctx.fillStyle = "#ffe5e5";
+                ctx.strokeStyle = "#cc0000";
+
+            } else if (node.final) {
+
+                ctx.fillStyle = "#e5fff0";
+                ctx.strokeStyle = "#00aa44";
+
+            } else if (node.start) {
+
+                ctx.fillStyle = "#e5f0ff";
+                ctx.strokeStyle = "#0055cc";
+
+            } else {
+
+                ctx.fillStyle = "#f5f5f5";
+                ctx.strokeStyle = "#555555";
+            }
+
+            ctx.lineWidth = 2;
+
+            ctx.fill();
+            ctx.stroke();
+
+            if (node.final) {
+
+                ctx.beginPath();
+
+                ctx.arc(pos.x, pos.y, r - 5, 0, Math.PI * 2);
+
+                ctx.strokeStyle = "#00aa44";
+                ctx.lineWidth = 1.5;
+
+                ctx.stroke();
+            }
+
+            ctx.fillStyle = "#111";
+
+            ctx.font = "bold 13px Courier New";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+
+            ctx.fillText(node.id, pos.x, pos.y);
+        });
+    }
+
+    draw();
+
+    </script>
+
+    {% endif %}
+
+    {% endif %}
+
+</div>
+
+</body>
+</html>

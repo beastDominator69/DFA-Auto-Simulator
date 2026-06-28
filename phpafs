@@ -1,0 +1,45 @@
+;Diyan Ghani Khan
+;531268
+
+org 100h
+jmp start
+
+arr db 8,5,3,2
+size db 4
+
+quot db 4 dup(?)      
+rem  db 4 dup(?)      
+
+sum dw 0              
+start:
+    mov si, 0
+    mov cl, [size]
+    mov bx, 0         
+
+    mov bl, 2         
+
+loop1:
+    mov al, [arr+si]  
+    mov ah, 0         
+
+    div bl            
+
+    ; store quotient
+    mov [quot+si], al
+
+    ; store remainder
+    mov [rem+si], ah
+
+    ; add remainder to sum
+    mov dl, ah
+    xor dh, dh
+    add bx, dx
+
+    inc si
+    loop loop1
+
+    mov [sum], bx     
+
+    ; program exit
+    mov ah, 4Ch
+    int 21h
